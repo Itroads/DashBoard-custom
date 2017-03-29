@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script src="js/jq.js"></script>
+	<link rel="stylesheet" href="./awesome/css/font-awesome.min.css">
+	<style type="text/css">
+		* {
+			padding: 0;
+			margin: 0;
+		}
+
+		html,
+		body {
+			width: 100%;
+			height: 100%;
+		}
+
+		#box {
+			margin: auto;
+			width: 490px;
+			height: 340px;
+			border: 1px solid #000000;
+			position: relative;
+		}
+
+		div.item {
+			width: 150px;
+			height: 100px;
+			border-radius: 5px;
+			margin: 5px;
+			float: left;
+			background: goldenrod;
+			border: 1px solid lightgray;
+			z-index: 1;
+			text-align: center;
+			font-size: 30px;
+			line-height: 100px;
+			cursor: move;
+			position: relative;
+		}
+
+		div.moving {
+			border: 1px dashed gray;
+			background: white;
+		}
+
+		div.draging {
+			width: 150px;
+			height: 100px;
+			position: absolute;
+			background: goldenrod;
+			box-shadow: 0 0 2px 2px #555;
+			border-radius: 5px;
+			z-index: 500;
+		}
+		.shade {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			background: black;
+			opacity: 0.5;
+			filter: alpha(opacity=50);
+			left: 0;
+			top: 0;
+			display: none;
+			color: powderblue;
+			z-index: 10;
+		}
+
+	</style>
+</head>
+
+<body>
+	<div id="box">
+		<div class="item">
+			<img src="img/1.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p>
+		</div>
+		<div class="item">
+			<!-- <img src="img/2.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p> -->
+		</div>
+		<div class="item">
+			<img src="img/3.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p>
+		</div>
+		<div class="item">
+			<img src="img/4.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p>
+		</div>
+		<div class="item">
+			<img src="img/5.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p>
+		</div>
+		<div class="item">
+			<img src="img/6.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p>
+		</div>
+		<div class="item">
+			<img src="img/7.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p>
+		</div>
+		<div class="item">
+			<img src="img/8.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p>
+		</div>
+		<div class="item">
+			<img src="img/9.png" width="100%" height="100%">
+			<p class="shade">
+				<span><i class="fa fa-arrow-up"></i></span>
+				<span><i class="fa fa-arrow-down"></i></span>
+				<span><i class="fa fa-arrow-left"></i></span>
+				<span><i class="fa fa-arrow-right"></i></span>
+			</p>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var itemW = 150, itemH = 100, itemBetween = 12, size = 3; //单元格的 宽, 高, 间隔宽, 规格3*3
+		//遮罩层显示合并按钮
+		$('#box div').hover(function(e) {
+			$(this).find('.shade').css('display', 'block')
+		},function(){
+			$(this).find('.shade').css('display', 'none')
+		})
+
+
+		//实现拖拽更换位置
+		var bstop = true;  // “锁” 控制是否拖拽
+		$('#box div').on('mousedown', function(e) {
+			if (bstop) {
+				bstop = false;
+				var that = this;	//为操作当前节点对this进行作用域预留
+        var disx = e.offsetX; //获取的拖拽过程的短线的长度（鼠标的位置离盒子边缘的位置）
+        var disy = e.offsetY;
+        var $clone = $(this).clone(); //克隆当前正在拖拽的目标块
+        
+        // -----------------处理合并-------------------
+        $clone.find('.fa').click(function(){ //这里需要双击才可以触发, 合并就意味着将原来的位置变大，删除旁边空白的格子
+					var currentItemW = parseInt($(that).css('width')); // 获取当前
+					var right = $(this).hasClass('fa-arrow-right');	//获取当前点击的按钮，进行相应操作
+					var left = $(this).hasClass('fa-arrow-left');
+					var top = $(this).hasClass('fa-arrow-up');
+					var bottom = $(this).hasClass('fa-arrow-down');
+					var totalW = $(this).offset().left; //#box 盒子的宽度
+					console.log(totalW);
+					if(right) {
+						currentItemW += (itemW + itemBetween)
+						if(currentItemW <= totalW){
+							$clone.css({
+								width: currentItemW +'px'
+							})
+							$(that).css({
+								width: currentItemW +'px'
+							}).next().remove();
+						}else {
+							console.log('已合并整行');
+						}
+					}else if(top) {
+						console.log('this top')
+					}else if(left) {
+						console.log('this left')
+					}else if(bottom) {
+						console.log('this top')
+					}
+				})
+
+        $clone.addClass('draging').css({ //对克隆的盒子设置类名以及当前位置，因为新克隆的元素并未设置top left，位置会默认在左上角
+        	left: $(this).position().left, //获取相对父元素的偏移量（单位：px）
+        	top: $(this).position().top	//
+        })
+        $('#box').append($clone); //追加到box里面
+        $(this).addClass('moving').html(''); //被克隆的元素添加类并移除内容
+        $('#box').on('mousemove', function(e) { //对克隆的盒子进行拖拽
+        	$clone.css({
+        		left: e.pageX - $(this).offset().left - disx,	//获得相对父元素的偏移量
+        		top: e.pageY - $(this).offset().top - disy
+        	})
+        });
+
+        $clone.on('mouseup', function() {	//对克隆的元素，监听鼠标抬起事件
+	        $('#box').off('mousemove'); //取消mousemove事件
+	        var minIndex = $(that).index(); //最小索引赋初始值	获取当前索引值
+	        var minValue = 1000; //初始化最小值，用来存储所有盒子的最小值
+	        $('#box div').not(':last').each(function() { //不包括克隆的那个盒子
+	            var smalldistance = Math.sqrt(Math.pow($clone.position().left - $(this).position().left, 2) + Math.pow($clone.position().top - $(this).position().top, 2)); //利用勾股定理获取每一个盒子离克隆出来的盒子的距离
+	            if (smalldistance < minValue) { //比较
+	                minValue = smalldistance; //获取最小值
+	                minIndex = $(this).index(); //获取最小值对应的索引
+	              }
+	            });
+	        if (minIndex == $(that).index()) { //如果当前最小距离的那个盒子和拖拽的盒子索引相等的话，归位。
+	        	$clone.animate($(that).position(), 400, function() {
+	                $(that).removeClass('moving').html($clone.html()); //恢复被克隆盒子的相关样式
+	                $(this).remove(); //移除被克隆的盒子
+	                bstop=true;
+	              });
+	        } else {
+	            var $minbox = $('#box div').eq(minIndex); //最小索引的盒子
+	            var $clone2 = $minbox.clone(); //克隆一个最小盒子的副本，添加相关样式
+	            $clone2.addClass('draging').css({
+	            	left: $minbox.position().left,
+	            	top: $minbox.position().top
+	            })
+	            $('#box').append($clone2); //追加
+	            $minbox.addClass('moving').html('');
+	            //将目标位置元素，与被拖动的元素交换位置
+	            $clone.animate($minbox.position(), 400, function() { //克隆的内容运动到最小索引的盒子的位置
+	                $minbox.removeClass('moving').html($clone.html()); //移除相关样式，添加内容
+	                $clone.remove(); //移除克隆的盒子
+	                bstop = true;
+	              });
+	            $clone2.animate($(that).position(), 400, function() { //将目标位置元素，放到被拖动元素初始位置
+	            	$(that).removeClass('moving').html($clone2.html());
+	            	$clone2.remove();
+	            	bstop = true;
+	            });
+	          }
+	        });
+      }
+      return false;
+    });
+  </script>
+</body>
+</html>
