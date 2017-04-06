@@ -27,6 +27,7 @@
 			background-color: #222222;
 			cursor: pointer;
 			text-align: center;
+			color: white;
 		}
 
 		#warehouse {
@@ -38,6 +39,9 @@
 			width: 150px;
 			background-color: #222222;
 		}
+		#warehouse td div{
+			background-color: #222222;
+		}
 		#feedback { font-size: 1.4em; }
 		.del {
 			display: none;
@@ -46,6 +50,7 @@
 			right: 3px;
 			z-index: 999;
 			cursor: pointer;
+			color: white;
 		}
 		.warehouseBtn {
 			height: 50px;
@@ -70,7 +75,7 @@
 	<!-- External JavaScript -->
 	<script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
 	<script src="http://lib.sinaapp.com/js/jquery-ui/1.9.2/jquery-ui.min.js"></script>
-
+	<script src="//cdn.bootcss.com/echarts/3.5.0/echarts.min.js"></script>
 	<!-- In-document JavaScript -->
 	<body>
 		<div>
@@ -82,10 +87,10 @@
 			<table id="warehouse" style="float: left;">
 				<tr>
 					<td name="drag1" ondrop="drop(event)" ondragover="allowDrop(event)">
-						<img src="./img/1.png" draggable="true" ondragstart="drag(event)" id="drag1">
+						<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag1"></div>
 					</td>
 					<td name="drag5" ondrop="drop(event)" ondragover="allowDrop(event)">
-						<img src="./img/5.png" draggable="true" ondragstart="drag(event)" id="drag5">
+						<img src="" draggable="true" ondragstart="drag(event)" id="drag5">
 					</td>
 				</tr>
 				<tr>
@@ -121,17 +126,23 @@
 					<td></td>
 				</tr>
 			</table>
-
 			<table id="t" class="ui-selectable" style="float: left;">
 			</table>
 		</div>
-		
 	</body>
 	<script>
 		
+			// ECharts图表
+			
+
+			var Drag1 = echarts.init(document.getElementById('drag1'));
+			$.get('option.json', function(data, status){
+				Drag1.setOption(data)
+			})
+			console.log(echarts.getInstanceByDom(document.getElementById('drag1')));
+
 			//页面自动加载table中的标签
 			var warehouseWidth = parseInt($('#warehouse').css('width'))+20;
-			console.log(warehouseWidth);
 			var bodyHeight = $(window).height(), bodyWidth = $(window).width()-warehouseWidth;
 			var itemWidth = 50, itemHeight = 50; //每个单元格的尺寸
 			var NumC = Math.floor( bodyWidth/itemWidth );	//一行有多少列
@@ -151,33 +162,28 @@
 					td.appendTo(tr);
 				}
 			}
-		//------合并单元格------
-		$(function(){
-			// 显示已选单元格编号
-			// function ShowSelected()
-			// {
-			// 	var result = $("#select-result").empty();
-			// 	var isEmpty = true;
-			// 	var tds = $("th,td", $("#t")); //获取 #t 中的 td 元素
-			// 	tds.filter(".ui-selected").each(function(){
-			// 		result.append("#" + (tds.index(this) + 1) + " ");
-			// 		isEmpty = false;
-			// 	});
-			// 	if (isEmpty) result.append("无");
-			// }
 
+			//------鼠标悬停出现按钮，删除当前项------
+			$("th,td", $("#t")).hover(function() {		
+				if( $(this).find('canvas').length >0 || $(this).find('img').length >0){
+					$(this).find('i').css('display', 'block');
+				}
+			},function() {
+				$(this).find('i').css('display', 'none');
+			})
+
+
+			//-------单元格操作--------
+			$(function(){
 			// 使表格可选
 			$("#t").selectable();
-			
 			// 合并单元格按钮
 			$("#btnMerge").click(function(){
 				var $t = $("#t");
-				
 				if ($("table", $t).length > 0) {
 					alert("不支持嵌套表格！");
 					return;
 				}
-				
 				var sigDel = "sign4delete";  // 删除标记，用作类名
 				var sigSel = "ui-selected";  // 选中标记，用作类名
 				
@@ -254,121 +260,56 @@
 					if ($(this).attr("rowspan") == 1) $(this).removeAttr("rowspan");
 					if ($(this).attr("colspan") == 1) $(this).removeAttr("colspan");
 				}).remove("." + sigDel);
-				// 移除标记单元格
-				
-				//ShowSelected();  // 更新选择结果文字
-			});
-			
-			// 拆分单元格按钮
-			$("#btnSplit").click(function(){
-				var $t = $("#t");
-
-				if ($("table", $t).length > 0) {
-					alert("不支持嵌套表格！");
-					return;
-				}
-
-				var sigDel = "sign4delete";  // 删除标记，类名，自定义
-				var sigSel = "ui-selected";  // 选中标记，类名，jQuery UI 定义
-
-				// 补充单元格以便后继正确计算坐标
-				$("th,td", $t).each(function(){
-					// 坐标要实时计算，因会实时补充
-					var ridx = $("tr", $t).index($(this).parent("tr"));
-					var cidx = $(this).parent().children("th,td").index(this);
-					var rowspan = Number($(this).attr("rowspan")) || 1;
-					var colspan = Number($(this).attr("colspan")) || 1;
-					var isSel = $(this).hasClass(sigSel);
-					// 非选单元格拆出的单元格要加删除标记
-
-					if (rowspan <= 1 && colspan <= 1)
-						return;
-
-					if (isSel)
-						$(this).removeAttr("colspan").removeAttr("rowspan");
-
-					// 跨格开插
-					$("tr", $t).each(function(){
-						var idx = $("tr", $t).index(this);
-						var arr, $td = $("<td>");
-
-						if (!isSel)
-							$td.addClass(sigDel);
-
-						if (idx == ridx) {
-							// 本行在 [cidx] 后插入 colspan-1 个
-
-							arr = $();  // 准备待插单元格
-							for (var i=0; i < colspan-1; i++)
-								arr = arr.add($td.clone());
-
-							$("th,td", this).eq(cidx).after(arr);
-
-						} else if (ridx < idx && idx < ridx + rowspan) {
-							// 以下行在 [cidx] 前插入 colspan 个
-
-							arr = $();  // 准备待插单元格
-							for (var i=0; i < colspan; i++)
-								arr = arr.add($td.clone());
-
-							if (cidx > 0 && $("th,td", this).eq(cidx - 1).length > 0)
-								$("th,td", this).eq(cidx - 1).after(arr);
-							else if ($("th,td", this).eq(cidx).length > 0)
-								$("th,td", this).eq(cidx).before(arr);
-							else
-								$(this).prepend(arr);
-						}
-					});
-				});
-
-				// 重新获取以取到删者并删之
-				$("th,td", $t).remove("." + sigDel);
-				ShowSelected();  // 更新选择结果文字
-			});
+				// 移除标记单元格		
+			});			
 		});
+
+
+		//------点击清空单元格中的标签,并将之放回到原来的盒子里------
+		var Drag = $(".fa", $("#t")).click(function(){
+				var dragDom = $(this).next();	 //获取我们拖动过去的那个标签，也是即将删除的标签
+				var boxDom = dragDom.attr('id');	//元素盒子的name值和元素的id值相同
+				$(this).css('display', 'none');	//将小叉号隐藏，不然点击完之后只要鼠标还在，叉号就不消失，看着很奇怪				
+				dragDom.remove();	//删除标签，但右上角的小图标还在，因为我们还要用
+				$.get('option.json', function(data, status){
+					$("[name="+boxDom+"]").append('<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="'+boxDom+'"></div>');
+					var Drag1 = echarts.init(document.getElementById('drag1'));
+					Drag1.setOption(data);
+					console.log("getclick");
+				})
+			});
 
 		//------H5拖拽事件------
 		function allowDrop(ev)
 		{
 			ev.preventDefault();	
 		}
-
 		function drag(ev)
 		{
 			ev.dataTransfer.setData("Text",ev.target.id);
+			var boxDom = ev.target.id
 		}
-
 		function drop(ev)
 		{
-			if(ev.target.id){
+			if(!ev.target.ondrop){
 				console.log("已有元素，不可再拖入")
 				return false;
 			}else{
 				ev.preventDefault();
 				var data=ev.dataTransfer.getData("Text");
 				ev.target.appendChild(document.getElementById(data));
+				var currentInstance = echarts.getInstanceByDom(document.getElementById(data));
+				currentInstance.resize();
+				console.log(currentInstance);
+				console.log('drop');
 			}
 		}
 
-		//------鼠标悬停出现按钮，删除当前项------
-		$("th,td", $("#t")).hover(function() {
-			if( $(this).find('img').length >0 ){
-				$(this).find('i').css('display', 'block');
-			}
-		},function() {
-			$(this).find('i').css('display', 'none');
-		})
+		
 
-		//------点击清空单元格中的标签,并将之放回到原来的盒子里------
-		$(".fa", $("#t")).click(function(){
-			var dragDom = $(this).next();	 //获取我们拖动过去的那个标签，也是即将删除的标签
-			var boxDom = dragDom.attr('id');	//元素盒子的name值和元素的id值相同
-			$(this).css('display', 'none');	//将小叉号隐藏，不然点击完之后只要鼠标还在，叉号就不消失，看着很奇怪
-			var copyCurrent = dragDom.prop("outerHTML");
-			$("[name="+boxDom+"]").html(copyCurrent);
-			dragDom.remove();	//删除标签，但右上角的小图标还在，因为我们还要用
-		})
-
+		function newEcharts(){
+			
+		}
 	</script>
 </head>
 </html>
