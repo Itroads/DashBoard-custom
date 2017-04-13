@@ -1,43 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>jQueryʵ��360������Ź���ͼƬ��ק����Ч������ - �زļ�԰��www.sucaijiayuan.com��</title>
-<script src="js/jq.js"></script>
-<script src="js/drag.js"></script>
-<style>
-.item_content ul {
-	list-style: none;
-}
-.item_content ul li {
-	width: 200px;
-	height: 120px;
-	float: left;
-	margin: 10px;
-  border: 1px solid gray;
-}
-.item_content {
-	background:#eee;
-	width: 740px;
-	height: 460px;
-	margin:100px auto;
-	border: 1px solid #ccc;
-	border-radius:5px;
-}
-.item_content .item {
-	width: 200px;
-	height: 120px;
-	line-height: 120px;
-	text-align: center;
-	cursor: pointer;
-	background: #ccc;
-}
-.item_content .item img {
-	width: 200px;
-	height: 120px;
-	border-radius: 6px;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>jQueryÊµÏÖ360ä¯ÀÀÆ÷¾Å¹¬¸ñÍ¼Æ¬ÍÏ×§ÅÅÐòÐ§¹û´úÂë - ËØ²Ä¼ÒÔ°£¨www.sucaijiayuan.com£©</title>
+  <script src="js/jq.js"></script>
+  <script src="js/drag.js"></script>
+  <style>
+    .item_content ul {
+     list-style: none;
+   }
+   .item_content ul li {
+     width: 200px;
+     height: 120px;
+     float: left;
+     margin: 10px;
+     border: 1px solid gray;
+   }
+   .item_content {
+     background:#eee;
+     width: 740px;
+     height: 460px;
+     margin:100px auto;
+     border: 1px solid #ccc;
+     border-radius:5px;
+   }
+   .item_content .item {
+     width: 200px;
+     height: 120px;
+     line-height: 120px;
+     text-align: center;
+     cursor: pointer;
+     background: #ccc;
+   }
+   .item_content .item img {
+     width: 200px;
+     height: 120px;
+     border-radius: 6px;
+   }
+ </style>
 </head>
 <body>
   <div class="item_content">
@@ -72,5 +72,98 @@
     </ul>
     <div style="clear:both"></div>
   </div>
+  <script>
+    var option1 = {
+      title: {
+        text: 'ECharts 入门示例'
+      },
+      tooltip: {},
+      legend: {
+        data:['销量']
+      },
+      xAxis: {
+        data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+      },
+      yAxis: {},
+      series: [{
+        name: '销量',
+        type: 'bar',
+        data: [5, 20, 36, 10, 10, 20]
+      }]
+    };
+    var option2 = {
+  backgroundColor: '#2c343c',
+
+  title: {
+    text: 'Customized Pie',
+    left: 'center',
+    top: 20,
+    textStyle: {
+      color: '#ccc'
+    }
+  },
+
+  tooltip : {
+    trigger: 'item',
+    formatter: "{a} <br/>{b} : {c} ({d}%)"
+  },
+
+  visualMap: {
+    show: false,
+    min: 80,
+    max: 600,
+    inRange: {
+      colorLightness: [0, 1]
+    }
+  },
+  series : [
+  {
+    name:'访问来源',
+    type:'pie',
+    radius : '55%',
+    center: ['50%', '50%'],
+    data:[
+    {value:335, name:'直接访问'},
+    {value:310, name:'邮件营销'},
+    {value:274, name:'联盟广告'},
+    {value:235, name:'视频广告'},
+    {value:400, name:'搜索引擎'}
+    ].sort(function (a, b) { return a.value - b.value}),
+    roseType: 'angle',
+    label: {
+      normal: {
+        textStyle: {
+          color: 'rgba(255, 255, 255, 0.3)'
+        }
+      }
+    },
+    labelLine: {
+      normal: {
+        lineStyle: {
+          color: 'rgba(255, 255, 255, 0.3)'
+        },
+        smooth: 0.2,
+        length: 10,
+        length2: 20
+      }
+    },
+    itemStyle: {
+      normal: {
+        color: '#c23531',
+        shadowBlur: 200,
+        shadowColor: 'rgba(0, 0, 0, 0.5)'
+      }
+    },
+
+    animationType: 'scale',
+    animationEasing: 'elasticOut',
+    animationDelay: function (idx) {
+      return Math.random() * 200;
+    }
+  }
+  ]
+};
+    console.log(JSON.stringify(option1));
+  </script>
 </body>
 </html>

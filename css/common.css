@@ -1,0 +1,60 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+body {
+	background-color: #444444;
+}
+#t {
+	background-color: #444444;
+}
+#t td.ui-selecting { background: #FECA40; }
+#t td.ui-selected  { background: #F39814; color: white; }
+#t td {
+	position: relative;
+	background-color: #222222;
+	cursor: pointer;
+	text-align: center;
+	color: white;
+}
+
+#warehouse {
+	background-color: #444444;
+	cursor: pointer;
+}
+#warehouse td {
+	height: 106px;
+	width: 150px;
+	background-color: #222222;
+}
+#warehouse td div{
+	background-color: #222222;
+}
+#feedback { font-size: 1.4em; }
+.del {
+	display: none;
+	position: absolute;
+	top: 3px;
+	right: 3px;
+	z-index: 999;
+	cursor: pointer;
+	color: white;
+}
+.warehouseBtn {
+	height: 50px;
+	width: 152px;
+	background-color: #222222;
+	line-height: 50px;
+	text-align: center;
+	color: white;
+	float: left;
+	cursor: pointer;
+}
+.adWords {
+	color: #222222;
+	font-style: italic;
+	font-size: x-large;
+	line-height: 50px;
+	text-align: center;
+	cursor: pointer;
+}

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+	<title>单元格之合并及拆分</title>
+	<!-- External CSS -->
+	<link href="http://lib.sinaapp.com/js/jquery-ui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet">
+	<link href="http://lib.sinaapp.com/js/jquery-ui/1.9.2/themes/base/jquery.ui.selectable.css" rel="stylesheet">
+	<link rel="stylesheet" href="./awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="./css/common.css">
+	<!-- In-document CSS -->
+	
+	<!-- External JavaScript -->
+	<script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
+	<script src="http://lib.sinaapp.com/js/jquery-ui/1.9.2/jquery-ui.min.js"></script>
+	<script src="//cdn.bootcss.com/echarts/3.5.0/echarts.min.js"></script>
+	<!-- In-document JavaScript -->
+</head>
+<body>
+	<div>
+		<div class="warehouseBtn" id="btnMerge">合并</div>
+		<div class="warehouseBtn" id="btnSplit">拆分</div>
+		<div class="adWords">Free DashBoard</div>
+	</div>
+	<div style="clear: both;">
+		<table id="warehouse" style="float: left;">
+			<tr>
+				<td name="drag0" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag0"></div>
+				</td>
+				<td name="drag1" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag1"></div>
+				</td>
+			</tr>
+			<tr>
+				<td name="drag2" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag2"></div>
+				</td>
+				<td name="drag3" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag3"></div>
+				</td>
+			</tr>
+			<tr>
+				<td name="drag4" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag4"></div>
+				</td>
+				<td name="drag5" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag5"></div>
+				</td>
+			</tr>
+			<tr>
+				<td name="drag6" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag6"></div>
+				</td>
+				<td name="drag7" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag7"></div>
+				</td>
+			</tr>
+		</table>
+		<table id="t" class="ui-selectable" style="float: left;">
+		</table>
+	</div>
+	<script src="./js/freedashboard.js"></script>
+	<script>
+		var modelArr = []; //为了避免所有实例都resize，将需要resize放到数组里
+		
+		function getJsonLength(jsonData){ //读取json串长度
+			var jsonLength = 0;
+			for(var item in jsonData){
+				jsonLength++;
+			}
+			return jsonLength;
+		}
+
+		$.get('./json/drag.json', function(data, status){	//初始化获取数据绘图
+			var dragLength = getJsonLength(data);
+			var dragArr = [];
+			for(var i=0; i<dragLength; i++ ){
+				dragArr[i] = echarts.init(document.getElementById('drag'+i));
+				dragArr[i].setOption(data["drag"+i]);
+			}
+		})
+		//-------单元格操作--------
+		$(function(){
+			var warehouseWidth = parseInt($('#warehouse').css('width'))+20;
+			var bodyHeight = $(window).height(), bodyWidth = Math.floor($(window).width())-warehouseWidth;
+			var NumC = 20;	//	一行多少个
+			var NumR = 15;	//	一共多少行
+			var percent = Math.floor((100/NumC))
+			var itemWidth = percent+"%";
+
+			var itemHeight = bodyWidth*percent*0.01; //每个单元格的尺寸
+			var itemBox = $("#t");
+			itemBox.css({
+				width: bodyWidth+"px",
+			})
+
+			for(var i=0;i<NumR;i++)
+			{
+				var tr=$('<tr style="height:'+itemHeight+'px"></tr>');
+				tr.appendTo(itemBox);
+				for(var j=0;j<NumC;j++)
+				{
+					var td=$('<td style="width:'+itemWidth+';height:'+itemHeight+'px;" ondrop="drop(event)" ondragover="allowDrop(event)" class="ui-selectee"><i class="fa fa-times-circle-o del"></i></td>');
+					td.appendTo(tr);
+				}
+			}
+			$(window).resize(function(){
+				var bodyWidth = Math.floor($(window).width())-warehouseWidth;
+				var h = bodyWidth*percent*0.01+"px";
+				
+				$("#t td").css("height",h);
+				$("#t tr").css("height",h);
+				for( var i = 0; i < modelArr.length; i++ ){
+					echarts.getInstanceByDom(document.getElementById(modelArr[i])).resize();
+				}
+				itemBox.css({
+					width: bodyWidth+"px",
+				})
+			})
+
+			//------鼠标悬停出现按钮，删除当前项------
+			$("th,td", $("#t")).hover(function() {		
+				if( $(this).find('canvas').length >0 || $(this).find('img').length >0){
+					$(this).find('i').css('display', 'block');
+				}
+			},function() {
+				$(this).find('i').css('display', 'none');
+			})
+			
+			//------点击清空单元格中的标签,并将之放回到原来的盒子里------
+			$("#t").on("click","i",function(){
+				var dragDom = $(this).next();	 //获取我们拖动过去的那个标签，也是即将删除的标签
+				var boxDom = dragDom.attr('id');	//元素盒子的name值和元素的id值相同
+				$(this).css('display', 'none');	//将小叉号隐藏，不然点击完之后只要鼠标还在，叉号就不消失，看着很奇怪				
+				dragDom.remove();	//删除标签，但右上角的小图标还在，因为我们还要用
+				$.get('./json/drag.json', function(data, status){
+					$("[name="+boxDom+"]").append('<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="'+boxDom+'"></div>');
+					var Drag = echarts.init(document.getElementById(boxDom));
+					Drag.setOption(data[boxDom]);
+					modelArr.splice($.inArray(boxDom,modelArr),1);
+				})
+			});
+
+		// 使表格可选
+		$("#t").selectable();
+		// 合并单元格按钮
+		$("#btnMerge").click(function(){
+			var $t = $("#t");
+			if ($("table", $t).length > 0) {
+				alert("不支持嵌套表格！");
+				return;
+			}
+			var sigDel = "sign4delete";  // 删除标记，用作类名
+			var sigSel = "ui-selected";  // 选中标记，用作类名
+			
+			// 补充单元格以便后继正确计算坐标
+			$("th,td", $t).each(function(){
+				// 坐标要实时计算，因会实时补充
+				var ridx = $("tr", $t).index($(this).parent("tr"));	//行索引值
+				var cidx = $(this).parent().children("th,td").index(this);	//列索引值
+				var rowspan = Number($(this).attr("rowspan")) || 1; //获取当前td的 rowspan参数值
+				var colspan = Number($(this).attr("colspan")) || 1; //获取当前td的 colspan参数值
+				var isSel = $(this).hasClass(sigSel);
+				// 非选单元格拆出的单元格要加删除标记
+				
+				if (rowspan <= 1 && colspan <= 1)
+					return;
+				// 跨格开插
+				$("tr", $t).each(function(){
+					var idx = $("tr", $t).index(this); 
+					var arr, $td = $("<td>").addClass(isSel ? sigSel : sigDel);
+					
+					if (idx == ridx) {
+						// 本行在 [cidx] 后插入 colspan-1 个
+						
+						arr = $();  // 准备待插单元格
+						for (var i=0; i < colspan-1; i++)
+							arr = arr.add($td.clone());
+						// 插入
+						$("th,td", this).eq(cidx).after(arr);
+						
+					} else if (ridx < idx && idx < ridx + rowspan) {
+						// 以下行在 [cidx] 前插入 colspan 个
+						
+						arr = $();  // 准备待插单元格
+						for (var i=0; i < colspan; i++)
+							arr = arr.add($td.clone());
+						// 插入
+						if (cidx > 0 && $("th,td", this).eq(cidx - 1).length > 0)
+							$("th,td", this).eq(cidx - 1).after(arr);
+						else if ($("th,td", this).eq(cidx).length > 0)
+							$("th,td", this).eq(cidx).before(arr);
+						else
+							$(this).prepend(arr);
+					}
+				});
+			});
+			
+			var rmin = 10000, cmin = 10000;
+			var rmax = 0    , cmax = 0    ;
+			var rnum        , cnum        ;
+			// 计算起始和跨距
+			$("th,td", $t).filter("." + sigSel).each(function(){
+				var ridx = $("tr", $t).index($(this).parent("tr"));
+				rmin = ridx < rmin ? ridx : rmin;
+				rmax = ridx > rmax ? ridx : rmax;
+				var cidx = $(this).parent().children("th,td").index(this);
+				cmin = cidx < cmin ? cidx : cmin;
+				cmax = cidx > cmax ? cidx : cmax;
+			});
+			rnum = rmax - rmin + 1;
+			cnum = cmax - cmin + 1;
+			
+			// 合并单元格
+			$("th,td", $t).each(function(){
+				var ridx = $("tr", $t).index($(this).parent("tr"));
+				var cidx = $(this).parent().children("th,td").index(this);
+				// 标记单元格待删
+				if (rmin <= ridx && ridx <= rmax
+					&& cmin <= cidx && cidx <= cmax)
+					$(this).addClass(sigDel);
+				// 处理被选左上角单元格
+				if (ridx == rmin && cidx == cmin){
+					$(this).removeClass(sigDel).attr({
+						rowspan: rnum,
+						colspan: cnum,
+						ondrop: "drop(event)",
+						ondragover:"allowDrop(event)"
+					})
+					$(this).removeClass(sigSel);
+					if($(this).find("i").length==0){
+						$(this).append('<i class="fa fa-times-circle-o del"></i>');
+						$(this).hover(function() {	
+							if( $(this).find('canvas').length >0 || $(this).find('img').length >0){
+								$(this).find('i').css('display', 'block');
+							}
+						},function() {
+							$(this).find('i').css('display', 'none');
+						})
+					}
+				}
+				// 清理残余
+				if ($(this).attr("rowspan") == 1) $(this).removeAttr("rowspan");
+				if ($(this).attr("colspan") == 1) $(this).removeAttr("colspan");
+			}).remove("." + sigDel);
+			// 移除标记单元格
+		});	
+		// 拆分单元格按钮
+		$("#btnSplit").click(function(){
+			var $t = $("#t");
+			if ($("table", $t).length > 0) {
+				alert("不支持嵌套表格！");
+				return;
+			}
+			var sigDel = "sign4delete";  // 删除标记，类名，自定义
+			var sigSel = "ui-selected";  // 选中标记，类名，jQuery UI 定义
+			
+			// 补充单元格以便后继正确计算坐标
+			$("th,td", $t).each(function(){
+				// 坐标要实时计算，因会实时补充
+				var ridx = $("tr", $t).index($(this).parent("tr"));
+				var cidx = $(this).parent().children("th,td").index(this);
+				var rowspan = Number($(this).attr("rowspan")) || 1;
+				var colspan = Number($(this).attr("colspan")) || 1;
+				var isSel = $(this).hasClass(sigSel);
+				// 非选单元格拆出的单元格要加删除标记
+				
+				if (rowspan <= 1 && colspan <= 1)
+					return;
+				
+				if (isSel)
+					$(this).removeAttr("colspan").removeAttr("rowspan");
+				
+				// 跨格开插
+				$("tr", $t).each(function(){
+					var idx = $("tr", $t).index(this);
+					var arr, $td = $("<td>");
+					
+					if (!isSel)
+						$td.addClass(sigDel);
+					
+					if (idx == ridx) {
+						// 本行在 [cidx] 后插入 colspan-1 个
+						
+						arr = $();  // 准备待插单元格
+						for (var i=0; i < colspan-1; i++)
+							arr = arr.add($td.clone());
+						
+						$("th,td", this).eq(cidx).after(arr);
+						
+					} else if (ridx < idx && idx < ridx + rowspan) {
+						// 以下行在 [cidx] 前插入 colspan 个
+						
+						arr = $();  // 准备待插单元格
+						for (var i=0; i < colspan; i++)
+							arr = arr.add($td.clone());
+						
+						if (cidx > 0 && $("th,td", this).eq(cidx - 1).length > 0)
+							$("th,td", this).eq(cidx - 1).after(arr);
+						else if ($("th,td", this).eq(cidx).length > 0)
+							$("th,td", this).eq(cidx).before(arr);
+						else
+							$(this).prepend(arr);
+					}
+				});
+			});
+			
+			// 重新获取以取到删者并删之
+			$("th,td", $t).remove("." + sigDel);	
+		});		
+	});
+
+	//------H5拖拽事件------
+	function allowDrop(ev)
+	{
+		ev.preventDefault();
+	}
+	function drag(ev)
+	{
+		ev.dataTransfer.setData("Text",ev.target.id);
+		var boxDom = ev.target.id
+	}
+	function drop(ev)
+	{
+		console.log(1)
+		if(!ev.target.ondrop){
+			console.log("已有元素，不可再拖入")
+			return false;
+		}else{
+			ev.preventDefault();
+			var data=ev.dataTransfer.getData("Text");
+			ev.target.appendChild(document.getElementById(data));
+			var currentInstance = echarts.getInstanceByDom(document.getElementById(data));// 获取当前DOM中的实例
+			currentInstance.resize();
+			modelArr.push(data);
+		}
+	}
+</script>
+</script>
+</body>
+</html>
