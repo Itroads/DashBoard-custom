@@ -61,7 +61,6 @@
 		<table id="t" class="ui-selectable" style="float: left;">
 		</table>
 	</div>
-	<script src="./js/freedashboard.js"></script>
 	<script>
 		var modelArr = []; //为了避免所有实例都resize，将需要resize放到数组里
 		
@@ -76,7 +75,7 @@
 		$.get('./json/drag.json', function(data, status){	//初始化获取数据绘图
 			var dragLength = getJsonLength(data);
 			var dragArr = [];
-			for(var i=0; i<dragLength; i++ ){
+			for(let i=0; i<dragLength; i++ ){
 				dragArr[i] = echarts.init(document.getElementById('drag'+i));
 				dragArr[i].setOption(data["drag"+i]);
 			}
@@ -84,7 +83,7 @@
 		//-------单元格操作--------
 		$(function(){
 			var warehouseWidth = parseInt($('#warehouse').css('width'))+20;
-			var bodyHeight = $(window).height(), bodyWidth = Math.floor($(window).width())-warehouseWidth;
+			let bodyHeight = $(window).height(), bodyWidth = Math.floor($(window).width())-warehouseWidth;
 			var NumC = 20;	//	一行多少个
 			var NumR = 15;	//	一共多少行
 			var percent = Math.floor((100/NumC))
@@ -96,32 +95,33 @@
 				width: bodyWidth+"px",
 			})
 
-			for(var i=0;i<NumR;i++)
+			for(let i=0;i<NumR;i++)
 			{
-				var tr=$('<tr style="height:'+itemHeight+'px"></tr>');
+				let tr=$('<tr style="height:'+itemHeight+'px"></tr>');
 				tr.appendTo(itemBox);
-				for(var j=0;j<NumC;j++)
+				for(let j=0;j<NumC;j++)
 				{
 					var td=$('<td style="width:'+itemWidth+';height:'+itemHeight+'px;" ondrop="drop(event)" ondragover="allowDrop(event)" class="ui-selectee"><i class="fa fa-times-circle-o del"></i></td>');
 					td.appendTo(tr);
 				}
 			}
-			$(window).resize(function(){
-				var bodyWidth = Math.floor($(window).width())-warehouseWidth;
-				var h = bodyWidth*percent*0.01+"px";
-				
-				$("#t td").css("height",h);
-				$("#t tr").css("height",h);
-				for( var i = 0; i < modelArr.length; i++ ){
-					echarts.getInstanceByDom(document.getElementById(modelArr[i])).resize();
-				}
+			$(window).resize(function(){ //这里的顺序很重要啊，先改变父元素的大小之后再改变里面格子，然后再resize echarts实例
+				let bodyWidth = Math.floor($(window).width())-warehouseWidth;
+				let h = bodyWidth*percent*0.01+"px";
 				itemBox.css({
 					width: bodyWidth+"px",
 				})
+				$("#t td").css("height",h);
+				$("#t tr").css("height",h);
+				
+				for( let i = 0; i < modelArr.length; i++ ){
+					echarts.getInstanceByDom(document.getElementById(modelArr[i])).resize();
+				}
+				console.log(modelArr);
 			})
 
 			//------鼠标悬停出现按钮，删除当前项------
-			$("th,td", $("#t")).hover(function() {		
+			$("th,td", $("#t")).hover(function() {			
 				if( $(this).find('canvas').length >0 || $(this).find('img').length >0){
 					$(this).find('i').css('display', 'block');
 				}
@@ -324,7 +324,6 @@
 	}
 	function drop(ev)
 	{
-		console.log(1)
 		if(!ev.target.ondrop){
 			console.log("已有元素，不可再拖入")
 			return false;
@@ -337,7 +336,6 @@
 			modelArr.push(data);
 		}
 	}
-</script>
 </script>
 </body>
 </html>
