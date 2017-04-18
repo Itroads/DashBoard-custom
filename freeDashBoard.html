@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+	<!-- <meta http-equiv="X-UA-Compatible" content="IE=Edge" /> -->
 	<title>单元格之合并及拆分</title>
 	<!-- External CSS -->
 	<link href="http://lib.sinaapp.com/js/jquery-ui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet">
@@ -19,16 +19,18 @@
 </head>
 <body>
 	<div>
-		<div class="warehouseBtn" id="btnMerge">合并</div>
-		<div class="warehouseBtn" id="btnSplit">拆分</div>
-		<div class="adWords">Free DashBoard</div>
+		<div class="warehouseBtn" id="btnMerge" style="position: fixed;left: 0;top:0;">合并</div>
+		<div class="warehouseBtn" id="btnSplit" style="position: fixed;left: 0;top:50px;">拆分</div>
+		<div class="adWords">&nbsp;</div>
 	</div>
-	<div style="clear: both;">
-		<table id="warehouse" style="float: left;">
+	<div style="position: fixed;left: 0;top:100px;height: 600px;overflow: scroll;">
+		<table id="warehouse">
 			<tr>
 				<td name="drag0" ondrop="drop(event)" ondragover="allowDrop(event)">
 					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag0"></div>
 				</td>
+			</tr>
+			<tr>
 				<td name="drag1" ondrop="drop(event)" ondragover="allowDrop(event)">
 					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag1"></div>
 				</td>
@@ -37,33 +39,37 @@
 				<td name="drag2" ondrop="drop(event)" ondragover="allowDrop(event)">
 					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag2"></div>
 				</td>
+			</tr>
+			<tr>
 				<td name="drag3" ondrop="drop(event)" ondragover="allowDrop(event)">
 					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag3"></div>
 				</td>
 			</tr>
 			<tr>
 				<td name="drag4" ondrop="drop(event)" ondragover="allowDrop(event)">
-					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag4"></div>
+					
 				</td>
+			</tr>
+			<tr>
 				<td name="drag5" ondrop="drop(event)" ondragover="allowDrop(event)">
-					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag5"></div>
 				</td>
 			</tr>
 			<tr>
 				<td name="drag6" ondrop="drop(event)" ondragover="allowDrop(event)">
-					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag6"></div>
 				</td>
+			</tr>
+			<tr>
 				<td name="drag7" ondrop="drop(event)" ondragover="allowDrop(event)">
-					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag7"></div>
 				</td>
 			</tr>
 		</table>
-		<table id="t" class="ui-selectable" style="float: left;">
-		</table>
 	</div>
+	<table id="t" class="ui-selectable" style="margin-left: 152px;">
+	</table>
+	
 	<script>
-		var modelArr = []; //为了避免所有实例都resize，将需要resize放到数组里
-		
+		var modelArr = []; //为了避免所有实例都resize，将需要resize的实例放到数组里
+		var dataD;
 		function getJsonLength(jsonData){ //读取json串长度
 			var jsonLength = 0;
 			for(var item in jsonData){
@@ -75,6 +81,7 @@
 		$.get('./json/drag.json', function(data, status){	//初始化获取数据绘图
 			var dragLength = getJsonLength(data);
 			var dragArr = [];
+			dataD = data;
 			for(let i=0; i<dragLength; i++ ){
 				dragArr[i] = echarts.init(document.getElementById('drag'+i));
 				dragArr[i].setOption(data["drag"+i]);
@@ -82,7 +89,7 @@
 		})
 		//-------单元格操作--------
 		$(function(){
-			var warehouseWidth = parseInt($('#warehouse').css('width'))+20;
+			var warehouseWidth = parseInt($('#warehouse').css('width'));
 			let bodyHeight = $(window).height(), bodyWidth = Math.floor($(window).width())-warehouseWidth;
 			var NumC = 20;	//	一行多少个
 			var NumR = 15;	//	一共多少行
@@ -108,20 +115,25 @@
 			$(window).resize(function(){ //这里的顺序很重要啊，先改变父元素的大小之后再改变里面格子，然后再resize echarts实例
 				let bodyWidth = Math.floor($(window).width())-warehouseWidth;
 				let h = bodyWidth*percent*0.01+"px";
+				console.log(h);
+				console.log(bodyWidth);
 				itemBox.css({
 					width: bodyWidth+"px",
 				})
 				$("#t td").css("height",h);
 				$("#t tr").css("height",h);
 				
-				for( let i = 0; i < modelArr.length; i++ ){
-					echarts.getInstanceByDom(document.getElementById(modelArr[i])).resize();
+				for(let i=0; i<modelArr.length; i++){
+					console.log("for"+i);
+					$("#"+modelArr[i]).empty();
 				}
-				console.log(modelArr);
+				for(let i=0; i<modelArr.length; i++){
+					echarts.init(document.getElementById(modelArr[i])).setOption(dataD[modelArr[i]]);
+				}
 			})
 
 			//------鼠标悬停出现按钮，删除当前项------
-			$("th,td", $("#t")).hover(function() {			
+			$("th,td", $("#t")).hover(function() {		
 				if( $(this).find('canvas').length >0 || $(this).find('img').length >0){
 					$(this).find('i').css('display', 'block');
 				}
