@@ -26,49 +26,35 @@
 	<div style="position: fixed;left: 0;top:100px;height: 600px;overflow: scroll;">
 		<table id="warehouse">
 			<tr>
-				<td name="drag0" ondrop="drop(event)" ondragover="allowDrop(event)">
-					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag0"></div>
+				<td class="bar" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" name="bar0"></div>
 				</td>
 			</tr>
 			<tr>
-				<td name="drag1" ondrop="drop(event)" ondragover="allowDrop(event)">
-					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag1"></div>
+				<td class="pie" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" name="pie0"></div>
 				</td>
 			</tr>
 			<tr>
-				<td name="drag2" ondrop="drop(event)" ondragover="allowDrop(event)">
-					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag2"></div>
+				<td class="line" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" name="line0"></div>
 				</td>
 			</tr>
 			<tr>
-				<td name="drag3" ondrop="drop(event)" ondragover="allowDrop(event)">
-					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="drag3"></div>
+				<td class="funnel" ondrop="drop(event)" ondragover="allowDrop(event)">
+					<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" name="funnel0"></div>
 				</td>
 			</tr>
-			<tr>
-				<td name="drag4" ondrop="drop(event)" ondragover="allowDrop(event)">
-					
-				</td>
-			</tr>
-			<tr>
-				<td name="drag5" ondrop="drop(event)" ondragover="allowDrop(event)">
-				</td>
-			</tr>
-			<tr>
-				<td name="drag6" ondrop="drop(event)" ondragover="allowDrop(event)">
-				</td>
-			</tr>
-			<tr>
-				<td name="drag7" ondrop="drop(event)" ondragover="allowDrop(event)">
-				</td>
-			</tr>
+			
 		</table>
 	</div>
 	<table id="t" class="ui-selectable" style="margin-left: 152px;">
 	</table>
 	
 	<script>
-		var modelArr = []; //为了避免所有实例都resize，将需要resize的实例放到数组里
+		var modelArr = []; //为了避免所有实例都resize，将需要resize的实例放到数组里，存放带有序号的
+		var nameArr = [];
+		
 		var dataD;
 		function getJsonLength(jsonData){ //读取json串长度
 			var jsonLength = 0;
@@ -80,11 +66,11 @@
 
 		$.get('./json/drag.json', function(data, status){	//初始化获取数据绘图
 			var dragLength = getJsonLength(data);
-			var dragArr = [];
-			dataD = data;
-			for(let i=0; i<dragLength; i++ ){
-				dragArr[i] = echarts.init(document.getElementById('drag'+i));
-				dragArr[i].setOption(data["drag"+i]);
+			dataD = data; //object
+			for(let key in data){
+				console.log(typeof key);
+				let keyname = key+"0";
+				echarts.init($("[name="+keyname+"]")[0]).setOption(data[key]);
 			}
 		})
 		//-------单元格操作--------
@@ -115,8 +101,6 @@
 			$(window).resize(function(){ //这里的顺序很重要啊，先改变父元素的大小之后再改变里面格子，然后再resize echarts实例
 				let bodyWidth = Math.floor($(window).width())-warehouseWidth;
 				let h = bodyWidth*percent*0.01+"px";
-				console.log(h);
-				console.log(bodyWidth);
 				itemBox.css({
 					width: bodyWidth+"px",
 				})
@@ -124,11 +108,11 @@
 				$("#t tr").css("height",h);
 				
 				for(let i=0; i<modelArr.length; i++){
-					console.log("for"+i);
-					$("#"+modelArr[i]).empty();
+					$("[name="+modelArr[i]+"]").empty();
 				}
 				for(let i=0; i<modelArr.length; i++){
-					echarts.init(document.getElementById(modelArr[i])).setOption(dataD[modelArr[i]]);
+					let optionKey = modelArr[i].substring(0, modelArr[i].length-1);
+					echarts.init(document.getElementsByName(modelArr[i])[0]).setOption(dataD[optionKey]);
 				}
 			})
 
@@ -144,15 +128,11 @@
 			//------点击清空单元格中的标签,并将之放回到原来的盒子里------
 			$("#t").on("click","i",function(){
 				var dragDom = $(this).next();	 //获取我们拖动过去的那个标签，也是即将删除的标签
-				var boxDom = dragDom.attr('id');	//元素盒子的name值和元素的id值相同
+				var boxDom = dragDom.attr('name');	//元素盒子的name值和元素的id值相同
 				$(this).css('display', 'none');	//将小叉号隐藏，不然点击完之后只要鼠标还在，叉号就不消失，看着很奇怪				
 				dragDom.remove();	//删除标签，但右上角的小图标还在，因为我们还要用
-				$.get('./json/drag.json', function(data, status){
-					$("[name="+boxDom+"]").append('<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" id="'+boxDom+'"></div>');
-					var Drag = echarts.init(document.getElementById(boxDom));
-					Drag.setOption(data[boxDom]);
-					modelArr.splice($.inArray(boxDom,modelArr),1);
-				})
+				modelArr.splice($.inArray(boxDom,modelArr),1); // 删除后，在数组中删除这一个
+				console.log(modelArr);
 			});
 
 		// 使表格可选
@@ -181,7 +161,7 @@
 					return;
 				// 跨格开插
 				$("tr", $t).each(function(){
-					var idx = $("tr", $t).index(this); 
+					var idx = $("tr", $t).index(this);
 					var arr, $td = $("<td>").addClass(isSel ? sigSel : sigDel);
 					
 					if (idx == ridx) {
@@ -331,9 +311,9 @@
 	}
 	function drag(ev)
 	{
-		ev.dataTransfer.setData("Text",ev.target.id);
-		var boxDom = ev.target.id
+		ev.dataTransfer.setData("Text",ev.target.getAttribute('name'));
 	}
+	var modelCount = 0;
 	function drop(ev)
 	{
 		if(!ev.target.ondrop){
@@ -342,12 +322,36 @@
 		}else{
 			ev.preventDefault();
 			var data=ev.dataTransfer.getData("Text");
-			ev.target.appendChild(document.getElementById(data));
-			var currentInstance = echarts.getInstanceByDom(document.getElementById(data));// 获取当前DOM中的实例
+			ev.target.appendChild($("[name="+data+"]")[0]);
+
+			// 获取当前实例进行 resize
+			var currentInstance = echarts.getInstanceByDom(document.getElementsByName(data)[0]);// 获取当前DOM中的实例
 			currentInstance.resize();
+
+			// 将当前标签的 name 放入 modelArr 
 			modelArr.push(data);
+
+			// TODO: 对 data 进行处理，将后面的数字去掉，然后存入nameArr中
+			console.log(data);
+			let nameNnum = data.substring(0, data.length-1);
+			modelCount = modelCount + 1;
+			let newName = nameNnum + modelCount;
+			console.log(newName);
+			nameArr.push(nameNnum);
+			
+			 // 获得当前去掉数据的name，在数组中的个数，方便下面生成标签的时候计数使用
+			 
+			 // let newName = nameNnum+toString(count);
+
+			 $("."+nameNnum).append('<div draggable="true" ondragstart="drag(event)" style="height: 100%;width: 100%;" name="'+newName+'"></div>');
+			  echarts.init($("#warehouse [name="+newName+"]")[0]).setOption(dataD[nameNnum]);
+			  
+			 console.log(modelArr);
+			 console.log(nameArr);
+
+			}
 		}
-	}
-</script>
+	</script>
 </body>
 </html>
+v
